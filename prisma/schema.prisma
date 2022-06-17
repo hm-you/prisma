@@ -1,0 +1,81 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["extendedIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  title String
+  posts Post[]
+}
+
+model Post {
+  id         Int       @id @default(autoincrement())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  title      String    @db.VarChar(255)
+  content    String?
+  published  Boolean   @default(false)
+  authorId   Int
+  categoryId Int
+  author     User      @relation(fields: [authorId], references: [id])
+  category   Category  @relation(fields: [categoryId], references: [id])
+  comments   Comment[]
+  likes      Like[]
+  vote       Vote[]
+}
+
+model Comment {
+  id      Int    @id @default(autoincrement())
+  content String
+  postId  Int?
+  userId  Int?
+  Post    Post?  @relation(fields: [postId], references: [id])
+  User    User?  @relation(fields: [userId], references: [id])
+
+  @@index([postId])
+}
+
+model Profile {
+  id     Int     @id @default(autoincrement())
+  bio    String?
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id       Int       @id @default(autoincrement())
+  email    String
+  name     String?
+  comments Comment[]
+  likes    Like[]
+  posts    Post[]
+  profile  Profile?
+  vote     Vote[]
+}
+
+model Like {
+  id     Int  @id @default(autoincrement())
+  postId Int
+  userId Int
+  post   Post @relation(fields: [postId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
+
+  @@index([postId])
+}
+
+model Vote {
+  id      Int  @id @default(autoincrement())
+  integer Int  @default(1)
+  userId  Int
+  postId  Int
+  post    Post @relation(fields: [postId], references: [id])
+  user    User @relation(fields: [userId], references: [id])
+
+  @@index([postId])
+}
